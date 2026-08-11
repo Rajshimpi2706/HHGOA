@@ -95,6 +95,36 @@ async function drawBlurBackground(
   ctx.restore();
 }
 
+// Helper to draw a circuit path on canvas
+function drawCircuitPath(
+  ctx: CanvasRenderingContext2D,
+  startX: number,
+  startY: number,
+  points: { x: number; y: number }[],
+  dash: number[] | null = null,
+  lineWidth = 1.5
+) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(183, 255, 0, 0.25)";
+  ctx.lineWidth = lineWidth;
+  if (dash) ctx.setLineDash(dash);
+
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  points.forEach((p) => ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawCircuitDot(ctx: CanvasRenderingContext2D, cx: number, cy: number, r = 3) {
+  ctx.save();
+  ctx.fillStyle = "rgba(183, 255, 0, 0.35)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 // ─── Main render function ─────────────────────────────────────────────────────
 
 export async function renderBuilderCard(
@@ -108,13 +138,13 @@ export async function renderBuilderCard(
   if (!ctx) throw new Error("Canvas 2D context not available.");
 
   // 1. Draw solid dark background
-  ctx.fillStyle = "#0e0e0f";
+  ctx.fillStyle = "#090b0e";
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
   // 2. Draw Circuit Dot Grid (circuit-bg)
-  ctx.fillStyle = "#2b2a2b";
-  const gridSpacing = 48; // Scaled 20px spacing
-  const dotRadius = 3;
+  ctx.fillStyle = "rgba(183, 255, 0, 0.05)";
+  const gridSpacing = 56; 
+  const dotRadius = 2.5;
   for (let gx = gridSpacing / 2; gx < CARD_WIDTH; gx += gridSpacing) {
     for (let gy = gridSpacing / 2; gy < CARD_HEIGHT; gy += gridSpacing) {
       ctx.beginPath();
@@ -123,70 +153,106 @@ export async function renderBuilderCard(
     }
   }
 
-  // 3. Draw Circuit Lines (circuit-lines corner lines)
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-  ctx.lineWidth = 4;
+  // 3. Draw circuit board corners (representing SVGs on all 4 corners)
+  
+  // Top-Left Corner
+  drawCircuitPath(ctx, 40, 140, [{ x: 40, y: 40 }, { x: 140, y: 40 }], null, 2);
+  drawCircuitPath(ctx, 60, 160, [{ x: 60, y: 60 }, { x: 160, y: 60 }], [4, 4], 1.2);
+  drawCircuitDot(ctx, 160, 60, 4);
+  drawCircuitPath(ctx, 40, 90, [{ x: 80, y: 90 }, { x: 110, y: 120 }, { x: 110, y: 175 }], null, 2);
+  drawCircuitDot(ctx, 110, 175, 4);
 
-  // circuit-lines::before (Top-Right: top: 8%, right: 8%, w/h: 45px)
-  // Maps to top: 120px, right: 80px, width/height: 107px on 1000x1500 canvas.
-  // Style: border-top: transparent, border-left: transparent -> Draws bottom and right borders.
-  const trX = CARD_WIDTH - 80;
-  const trY = 120;
-  const trW = 107;
-  const trH = 107;
-  ctx.beginPath();
-  ctx.moveTo(trX - trW, trY + trH);
-  ctx.lineTo(trX, trY + trH);
-  ctx.lineTo(trX, trY);
-  ctx.stroke();
+  // Top-Right Corner
+  drawCircuitPath(ctx, CARD_WIDTH - 40, 140, [{ x: CARD_WIDTH - 40, y: 40 }, { x: CARD_WIDTH - 140, y: 40 }], null, 2);
+  drawCircuitPath(ctx, CARD_WIDTH - 60, 160, [{ x: CARD_WIDTH - 60, y: 60 }, { x: CARD_WIDTH - 160, y: 60 }], [4, 4], 1.2);
+  drawCircuitDot(ctx, CARD_WIDTH - 160, 60, 4);
+  drawCircuitPath(ctx, CARD_WIDTH - 40, 90, [{ x: CARD_WIDTH - 80, y: 90 }, { x: CARD_WIDTH - 110, y: 120 }, { x: CARD_WIDTH - 110, y: 175 }], null, 2);
+  drawCircuitDot(ctx, CARD_WIDTH - 110, 175, 4);
 
-  // circuit-lines::after (Bottom-Right: bottom: 8%, right: 8%, w/h: 65px)
-  // Maps to bottom: 120px, right: 80px, width/height: 155px.
-  // Style: border-bottom: transparent, border-right: transparent -> Draws top and left borders.
-  const brX = CARD_WIDTH - 80;
-  const brY = CARD_HEIGHT - 120;
-  const brW = 155;
-  const brH = 155;
-  ctx.beginPath();
-  ctx.moveTo(brX - brW, brY - brH);
-  ctx.lineTo(brX - brW, brY);
-  ctx.lineTo(brX, brY);
-  ctx.stroke();
+  // Bottom-Left Corner
+  drawCircuitPath(ctx, 40, CARD_HEIGHT - 140, [{ x: 40, y: CARD_HEIGHT - 40 }, { x: 140, y: CARD_HEIGHT - 40 }], null, 2);
+  drawCircuitPath(ctx, 60, CARD_HEIGHT - 160, [{ x: 60, y: CARD_HEIGHT - 60 }, { x: 160, y: CARD_HEIGHT - 60 }], [4, 4], 1.2);
+  drawCircuitDot(ctx, 160, CARD_HEIGHT - 60, 4);
+  drawCircuitPath(ctx, 40, CARD_HEIGHT - 90, [{ x: 80, y: CARD_HEIGHT - 90 }, { x: 110, y: CARD_HEIGHT - 120 }, { x: 110, y: CARD_HEIGHT - 175 }], null, 2);
+  drawCircuitDot(ctx, 110, CARD_HEIGHT - 175, 4);
 
-  // 4. Draw Top Header Text
+  // Bottom-Right Corner
+  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 140, [{ x: CARD_WIDTH - 40, y: CARD_HEIGHT - 40 }, { x: CARD_WIDTH - 140, y: CARD_HEIGHT - 40 }], null, 2);
+  drawCircuitPath(ctx, CARD_WIDTH - 60, CARD_HEIGHT - 160, [{ x: CARD_WIDTH - 60, y: CARD_HEIGHT - 60 }, { x: CARD_WIDTH - 160, y: CARD_HEIGHT - 60 }], [4, 4], 1.2);
+  drawCircuitDot(ctx, CARD_WIDTH - 160, CARD_HEIGHT - 60, 4);
+  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 90, [{ x: CARD_WIDTH - 80, y: CARD_HEIGHT - 90 }, { x: CARD_WIDTH - 110, y: CARD_HEIGHT - 120 }, { x: CARD_WIDTH - 110, y: CARD_HEIGHT - 175 }], null, 2);
+  drawCircuitDot(ctx, CARD_WIDTH - 110, CARD_HEIGHT - 175, 4);
+
+  // 4. Draw Header Text "HH GOA 2026"
   ctx.fillStyle = "#FFFFFF";
   ctx.font = "bold 48px sans-serif";
   ctx.textAlign = "left";
   ctx.fillText("HH GOA 2026", 60, 110);
 
-  // Horizontal divider line
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-  ctx.lineWidth = 2;
+  // Draw HACKER Badge
+  ctx.fillStyle = "rgba(183, 255, 0, 0.1)";
   ctx.beginPath();
-  ctx.moveTo(60, 140);
-  ctx.lineTo(940, 140);
+  roundRect(ctx, 770, 70, 170, 48, 6);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(183, 255, 0, 0.25)";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // 5. Draw User Photo Inside Frame
-  const photoW = 320;
-  const photoH = 320;
+  ctx.fillStyle = "#B7FF00";
+  ctx.font = "bold 20px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("HACKER", 855, 101);
+
+  // Divider Line
+  const grad = ctx.createLinearGradient(60, 0, 940, 0);
+  grad.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+  grad.addColorStop(0.5, "rgba(255, 255, 255, 0.1)");
+  grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(60, 145);
+  ctx.lineTo(940, 145);
+  ctx.stroke();
+
+  // 5. Draw User Photo inside High-Tech Frame
+  const photoW = 340;
+  const photoH = 340;
   const photoX = (CARD_WIDTH - photoW) / 2;
-  const photoY = 260;
+  const photoY = 240;
 
-  // Photo Container Background
-  ctx.fillStyle = "#202021";
-  ctx.fillRect(photoX, photoY, photoW, photoH);
+  // Background for frame
+  ctx.fillStyle = "#12161b";
+  ctx.beginPath();
+  roundRect(ctx, photoX - 10, photoY - 10, photoW + 20, photoH + 20, 12);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-  // Draw Photo
+  // Crosshair corners
+  ctx.strokeStyle = "#B7FF00";
+  ctx.lineWidth = 3;
+  // Top-Left bracket
+  ctx.beginPath(); ctx.moveTo(photoX - 4, photoY + 12); ctx.lineTo(photoX - 4, photoY - 4); ctx.lineTo(photoX + 12, photoY - 4); ctx.stroke();
+  // Top-Right bracket
+  ctx.beginPath(); ctx.moveTo(photoX + photoW + 4, photoY + 12); ctx.lineTo(photoX + photoW + 4, photoY - 4); ctx.lineTo(photoX + photoW - 12, photoY - 4); ctx.stroke();
+  // Bottom-Left bracket
+  ctx.beginPath(); ctx.moveTo(photoX - 4, photoY + photoH - 12); ctx.lineTo(photoX - 4, photoY + photoH + 4); ctx.lineTo(photoX + 12, photoY + photoH + 4); ctx.stroke();
+  // Bottom-Right bracket
+  ctx.beginPath(); ctx.moveTo(photoX + photoW + 4, photoY + photoH - 12); ctx.lineTo(photoX + photoW + 4, photoY + photoH + 4); ctx.lineTo(photoX + photoW - 12, photoY + photoH + 4); ctx.stroke();
+
+  // Crop / Paint image bounds
+  ctx.save();
+  ctx.beginPath();
+  roundRect(ctx, photoX, photoY, photoW, photoH, 8);
+  ctx.clip();
+  ctx.fillStyle = "#1c222a";
+  ctx.fill();
+
   if (input.imageUrl) {
     try {
-      ctx.save();
-      // Clip to container bounds
-      ctx.rect(photoX, photoY, photoW, photoH);
-      ctx.clip();
-
       const img = await loadImage(input.imageUrl);
-
       if (input.fitMode === "fill") {
         drawCover(ctx, img, photoX, photoY, photoW, photoH,
           input.orientation === "portrait" ? "top" : "center");
@@ -200,12 +266,11 @@ export async function renderBuilderCard(
           drawCover(ctx, img, photoX, photoY, photoW, photoH, "center");
         }
       }
-      ctx.restore();
     } catch (err) {
-      console.error("Failed to load/draw user image on canvas:", err);
+      console.error("Failed to paint image:", err);
     }
   } else {
-    // Draw default placeholder image from user's URL
+    // Default placeholder
     try {
       const placeholderImg = await loadImage("https://lh3.googleusercontent.com/aida-public/AB6AXuCyjgujgm984Me0dmVhjAnqU3q7AnTEArkZpdDQHPYwFtiyf6yQ2EjnCfdc9A8PUQKQpvWmGeFwoTFzJtcwwkPSTuw1mwmIR7J2go3pvrkyzOvCm4oHh8TBfVTPT9DWO8Sm3fWwikCqk2AWM_vxq6I3zF2x0KOU24mVYWK1R2HL8l9yE_8lYKDhlmbnqu31w4-YeDQUD-SOseZrAw4oX3foKtbemP-TjDw6R2h1wmMe5G5u9lqGW-O1");
       drawCover(ctx, placeholderImg, photoX, photoY, photoW, photoH, "center");
@@ -213,14 +278,10 @@ export async function renderBuilderCard(
       console.warn("Failed to load default placeholder:", err);
     }
   }
-
-  // Draw photo border
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-  ctx.lineWidth = 5;
-  ctx.strokeRect(photoX, photoY, photoW, photoH);
+  ctx.restore();
 
   // 6. Draw User Name (Centered)
-  const formattedName = input.name.trim() ? input.name.toUpperCase() : "ALEX CHEN";
+  const formattedName = input.name.trim() ? input.name.toUpperCase() : "OUR NAME";
   const nameLen = formattedName.length;
   let nameSize = 56;
   if (nameLen > 24) nameSize = 36;
@@ -231,58 +292,89 @@ export async function renderBuilderCard(
   ctx.textAlign = "center";
   ctx.fillText(formattedName, CARD_WIDTH / 2, 700);
 
+  // Small centered bar under name
+  const nameBarWidth = 150;
+  const nameBarGrad = ctx.createLinearGradient(CARD_WIDTH / 2 - nameBarWidth / 2, 0, CARD_WIDTH / 2 + nameBarWidth / 2, 0);
+  nameBarGrad.addColorStop(0, "rgba(183, 255, 0, 0)");
+  nameBarGrad.addColorStop(0.5, "rgba(183, 255, 0, 0.4)");
+  nameBarGrad.addColorStop(1, "rgba(183, 255, 0, 0)");
+  ctx.fillStyle = nameBarGrad;
+  ctx.fillRect(CARD_WIDTH / 2 - nameBarWidth / 2, 725, nameBarWidth, 4);
+
   // 7. Draw PARTICIPANT Label (Centered)
   ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-  ctx.font = "500 32px sans-serif";
+  ctx.font = "bold 24px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("PARTICIPANT", CARD_WIDTH / 2, 760);
+  ctx.fillText("PARTICIPANT", CARD_WIDTH / 2, 775);
 
-  // 8. Draw Role (Centered)
-  const formattedRole = input.role.trim() ? input.role.toUpperCase() : "ROLE - DEVELOPER";
+  // 8. Draw Role
+  const formattedRole = input.role.trim() ? input.role.toUpperCase() : "ROLE";
   const displayRole = formattedRole.startsWith("ROLE -") ? formattedRole : `ROLE - ${formattedRole}`;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = "600 32px sans-serif";
+  ctx.fillStyle = "#B7FF00";
+  ctx.font = "bold 28px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(displayRole, CARD_WIDTH / 2, 820);
+  ctx.fillText(displayRole, CARD_WIDTH / 2, 825);
 
-  // 9. Draw Team Tag Box
+  // 9. Draw Holographic Team Tag Box
   const boxX = 60;
   const boxY = 890;
   const boxW = 880;
-  const boxH = 95;
+  const boxH = 110;
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+  ctx.fillStyle = "rgba(239, 68, 68, 0.05)";
   ctx.beginPath();
-  roundRect(ctx, boxX, boxY, boxW, boxH, 6);
+  roundRect(ctx, boxX, boxY, boxW, boxH, 12);
   ctx.fill();
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.2)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Draw Team Text
-  const formattedTeam = input.team.trim() ? input.team.toUpperCase() : "TEAM - CODERUSH";
+  // Tech red brackets inside team box
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+  ctx.lineWidth = 1.5;
+  // Top-Left bracket
+  ctx.beginPath(); ctx.moveTo(boxX + 6, boxY + 16); ctx.lineTo(boxX + 6, boxY + 6); ctx.lineTo(boxX + 16, boxY + 6); ctx.stroke();
+  // Top-Right bracket
+  ctx.beginPath(); ctx.moveTo(boxX + boxW - 6, boxY + 16); ctx.lineTo(boxX + boxW - 6, boxY + 6); ctx.lineTo(boxX + boxW - 16, boxY + 6); ctx.stroke();
+  // Bottom-Left bracket
+  ctx.beginPath(); ctx.moveTo(boxX + 6, boxY + boxH - 16); ctx.lineTo(boxX + 6, boxY + boxH - 6); ctx.lineTo(boxX + 16, boxY + boxH - 6); ctx.stroke();
+  // Bottom-Right bracket
+  ctx.beginPath(); ctx.moveTo(boxX + boxW - 6, boxY + boxH - 16); ctx.lineTo(boxX + boxW - 6, boxY + boxH - 6); ctx.lineTo(boxX + boxW - 16, boxY + boxH - 6); ctx.stroke();
+
+  // Draw Team Text (Centered)
+  const formattedTeam = input.team.trim() ? input.team.toUpperCase() : "TEAM NAME";
   const displayTeam = formattedTeam.startsWith("TEAM -") ? formattedTeam : `TEAM - ${formattedTeam}`;
   ctx.fillStyle = "#ff4d4d";
   ctx.font = "bold 32px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(displayTeam, CARD_WIDTH / 2, boxY + 58);
+  ctx.fillText(displayTeam, CARD_WIDTH / 2, boxY + 66);
 
   // 10. Draw Footer Text
   // Divider line
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+  const footerGrad = ctx.createLinearGradient(60, 0, 940, 0);
+  footerGrad.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+  footerGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.1)");
+  footerGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.strokeStyle = footerGrad;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(60, 1180);
-  ctx.lineTo(940, 1180);
+  ctx.moveTo(60, 1170);
+  ctx.lineTo(940, 1170);
   ctx.stroke();
 
   ctx.textAlign = "left";
   ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-  ctx.font = "300 28px sans-serif";
-  ctx.fillText("BUILDER @ HH GOA", 60, 1240);
-  ctx.fillText("GOA • OCT 28-31 • 2026", 60, 1295);
-  ctx.fillText("#InGoa", 60, 1350);
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillText("BUILDER @ HH GOA", 60, 1225);
+  
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.font = "400 22px sans-serif";
+  ctx.fillText("GOA • OCT 28-31 • 2026", 60, 1275);
+  
+  ctx.fillStyle = "rgba(183, 255, 0, 0.7)";
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillText("#FrameInGoa", 60, 1325);
 
   // 11. Export as PNG Blob
   return new Promise<Blob>((resolve, reject) => {
