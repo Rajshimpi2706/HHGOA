@@ -139,3 +139,37 @@ input[type="range"]::-moz-range-thumb {
 .glow-pulse {
   animation: glowPulse 2.5s ease-in-out infinite;
 }
+
+/* ─── Circuit Background & Lines for ID Card ────────────────────────── */
+.circuit-bg {
+  background-image: radial-gradient(circle at center, #2b2a2b 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+}
+
+.circuit-lines::before,
+.circuit-lines::after {
+  content: '';
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.circuit-lines::before {
+  top: 8%;
+  right: 8%;
+  width: 45px;
+  height: 45px;
+  border-top-color: transparent;
+  border-left-color: transparent;
+}
+
+.circuit-lines::after {
+  bottom: 8%;
+  right: 8%;
+  width: 65px;
+  height: 65px;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
