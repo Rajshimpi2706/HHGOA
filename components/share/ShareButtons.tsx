@@ -13,8 +13,31 @@ interface ShareButtonsProps {
 type ShareState = "idle" | "rendering" | "success" | "error";
 
 function buildXCaption(name: string): string {
-  const displayName = name.trim() || "a builder";
-  return `${displayName} is generating their Builder Signal for HH Goa 2026.\n\nSHIP > TALK\n\n#FrameInGoa #HHGoa`;
+  const displayName = name.trim() || "A builder";
+  return `${displayName} is ready for Hacker House Goa 2026! 🚀\n\n#FrameInGoa #HHGoa2026`;
+}
+
+// Helper: upload card blob anonymously to Imgur to get a shareable URL
+async function uploadToImgur(blob: Blob): Promise<string | null> {
+  const formData = new FormData();
+  formData.append("image", blob);
+  try {
+    // Public anonymous client ID for card sharing
+    const clientID = "546c25a59c58ad7"; 
+    const response = await fetch("https://api.imgur.com/3/image", {
+      method: "POST",
+      headers: {
+        Authorization: `Client-ID ${clientID}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) throw new Error("Imgur upload failed");
+    const json = await response.json();
+    return json.data.link;
+  } catch (err) {
+    console.error("Imgur upload error:", err);
+    return null;
+  }
 }
 
 export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
@@ -77,7 +100,7 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
       try {
         await navigator.share({
           files: [file],
-          title: "HH Goa Builder Signal",
+          title: "HH Goa Builder Card",
           text: caption,
         });
         setShareState("success");
@@ -89,17 +112,34 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
       }
     }
 
-    // Level 2: Desktop fallback — download + open X intent
-    triggerDownload(blob);
+    // Level 2: Desktop fallback — upload image to Imgur to enable image preview on X
+    setStatusMsg("Uploading card preview link...");
+    const imgurUrl = await uploadToImgur(blob);
 
-    const xUrl =
-      "https://twitter.com/intent/tweet?text=" +
-      encodeURIComponent(caption);
-    window.open(xUrl, "_blank", "noopener,noreferrer");
-
-    setShareState("success");
-    setStatusMsg("Card downloaded — attach it in the X window that opened.");
-    setTimeout(() => { setShareState("idle"); setStatusMsg(""); }, 6000);
+    if (imgurUrl) {
+      const xUrl =
+        "https://twitter.com/intent/tweet?text=" +
+        encodeURIComponent(caption) +
+        "&url=" +
+        encodeURIComponent(imgurUrl);
+      window.open(xUrl, "_blank", "noopener,noreferrer");
+      setShareState("success");
+      setStatusMsg("X share window opened!");
+    } else {
+      // Fallback if Imgur fails — download file and open normal tweet window
+      triggerDownload(blob);
+      const xUrl =
+        "https://twitter.com/intent/tweet?text=" +
+        encodeURIComponent(caption);
+      window.open(xUrl, "_blank", "noopener,noreferrer");
+      setShareState("success");
+      setStatusMsg("Card downloaded — attach it in the X window that opened.");
+    }
+    
+    setTimeout(() => {
+      setShareState("idle");
+      setStatusMsg("");
+    }, 5000);
   }
 
   const isRendering = shareState === "rendering";
@@ -148,7 +188,7 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
 
       {/* Privacy note */}
       <p className="font-mono text-xs text-center text-[#1E2D3A] tracking-wide">
-        Your photo is processed locally in your browser — never uploaded.
+        Your photo is processed locally. Sharing to X uploads the card to generate a preview link.
       </p>
     </div>
   );
