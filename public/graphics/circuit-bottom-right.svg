@@ -1,0 +1,18 @@
+<svg width="400" height="350" viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/http://www.w3.org/2000/svg">
+  <!-- Circuit paths in bottom right -->
+  <!-- Main horizontal path bending up-left -->
+  <path d="M 400 300 L 250 300 L 200 250 L 100 250" stroke="rgba(255, 255, 255, 0.18)" stroke-width="2" fill="none" />
+  <circle cx="100" cy="250" r="4.5" fill="#0B0D12" stroke="rgba(255, 255, 255, 0.3)" stroke-width="2.5" />
+
+  <!-- Bending path 2 -->
+  <path d="M 400 270 L 280 270 L 230 220 L 180 220 L 150 190" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.8" fill="none" />
+  <circle cx="150" cy="190" r="3.5" fill="#0B0D12" stroke="rgba(255, 255, 255, 0.25)" stroke-width="2" />
+
+  <!-- Vertical/diagonal path -->
+  <path d="M 370 350 L 370 280 L 330 240 L 330 180" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.5" fill="none" />
+  <circle cx="330" cy="180" r="3" fill="#0B0D12" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.5" />
+
+  <!-- Bending path 4 -->
+  <path d="M 400 210 L 320 210 L 270 160 L 270 120" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.8" fill="none" />
+  <circle cx="270" cy="120" r="4" fill="#0B0D12" stroke="rgba(255, 255, 255, 0.25)" stroke-width="2" />
+</svg>

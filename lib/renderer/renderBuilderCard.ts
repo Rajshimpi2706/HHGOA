@@ -1,16 +1,9 @@
-import type { RenderBuilderCardInput, BuilderDnaItem } from "@/types";
+import type { RenderBuilderCardInput } from "@/types";
 import {
   CARD_WIDTH,
   CARD_HEIGHT,
+  CARD_CONFIG,
   COLORS,
-  IMAGE_AREA,
-  NAME_CONFIG,
-  ROLE_CONFIG,
-  TITLE_CONFIG,
-  DNA_CONFIG,
-  SIGNAL_CONFIG,
-  FOOTER_CONFIG,
-  HEADER_CONFIG,
 } from "./cardConfig";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -22,7 +15,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
       img.crossOrigin = "anonymous";
     }
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load image for canvas render."));
+    img.onerror = () => reject(new Error("Failed to load image: " + src));
     img.src = src;
   });
 }
@@ -92,7 +85,6 @@ async function drawBlurBackground(
   w: number,
   h: number
 ) {
-  // Draw scaled-up blurred version
   ctx.save();
   ctx.filter = "blur(20px) brightness(0.4)";
   const scale = Math.max(w / img.width, h / img.height) * 1.2;
@@ -105,171 +97,16 @@ async function drawBlurBackground(
   ctx.restore();
 }
 
-// ─── Draw sections ────────────────────────────────────────────────────────────
-
-function drawBackground(ctx: CanvasRenderingContext2D) {
-  // Base fill
-  ctx.fillStyle = COLORS.background;
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  // Subtle top vignette glow
-  const grad = ctx.createRadialGradient(
-    CARD_WIDTH / 2, 0, 0,
-    CARD_WIDTH / 2, 0, CARD_WIDTH * 0.8
-  );
-  grad.addColorStop(0, "rgba(183,255,0,0.04)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-}
-
-function drawHeader(ctx: CanvasRenderingContext2D) {
-  ctx.font = HEADER_CONFIG.font;
-  ctx.fillStyle = COLORS.accent;
-  ctx.fillText("HH GOA", HEADER_CONFIG.x, HEADER_CONFIG.y);
-
-  // Draw // separator
-  ctx.fillStyle = COLORS.footerText;
-  const hhWidth = ctx.measureText("HH GOA").width;
-  ctx.fillText(" //", HEADER_CONFIG.x + hhWidth, HEADER_CONFIG.y);
-
-  const sepWidth = ctx.measureText(" //").width;
-  ctx.fillStyle = COLORS.white;
-  ctx.fillText(" 2026", HEADER_CONFIG.x + hhWidth + sepWidth, HEADER_CONFIG.y);
-}
-
-async function drawImageArea(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  input: RenderBuilderCardInput
-) {
-  const { x, y, width, height, radius } = IMAGE_AREA;
-
-  // Frame border
-  ctx.save();
-  roundRect(ctx, x - 1, y - 1, width + 2, height + 2, radius + 1);
-  ctx.strokeStyle = COLORS.imageFrameBorder;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Clip to rounded rect
-  roundRect(ctx, x, y, width, height, radius);
-  ctx.clip();
-
-  if (input.fitMode === "fill") {
-    // Fill: cover from top for portrait, center for others
-    drawCover(ctx, img, x, y, width, height,
-      input.orientation === "portrait" ? "top" : "center");
-  } else {
-    // Smart Fit
-    if (input.orientation === "landscape") {
-      await drawBlurBackground(ctx, img, x, y, width, height);
-      drawContain(ctx, img, x, y, width, height);
-    } else if (input.orientation === "portrait") {
-      drawCover(ctx, img, x, y, width, height, "top");
-    } else {
-      // square
-      drawCover(ctx, img, x, y, width, height, "center");
-    }
-  }
-
-  ctx.restore();
-}
-
-function drawName(ctx: CanvasRenderingContext2D, name: string) {
-  ctx.font = NAME_CONFIG.font;
-  ctx.fillStyle = COLORS.nameText;
-  // Truncate if too long
-  const displayName = name.trim() || "YOUR NAME";
-  ctx.fillText(displayName.toUpperCase(), NAME_CONFIG.x, NAME_CONFIG.y, NAME_CONFIG.maxWidth);
-}
-
-function drawRole(ctx: CanvasRenderingContext2D, role: string) {
-  ctx.font = ROLE_CONFIG.font;
-  ctx.fillStyle = COLORS.roleText;
-  ctx.fillText(`[ ${role || "BUILDER"} ]`, ROLE_CONFIG.x, ROLE_CONFIG.y);
-}
-
-function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
-  ctx.font = TITLE_CONFIG.font;
-  ctx.fillStyle = COLORS.titleText;
-  ctx.fillText(title, TITLE_CONFIG.x, TITLE_CONFIG.y);
-}
-
-function drawDna(ctx: CanvasRenderingContext2D, dna: BuilderDnaItem[]) {
-  const { startX, startY, barHeight, barRadius, rowSpacing, labelFont, valueFont, barWidth, labelWidth, valueWidth } = DNA_CONFIG;
-
-  dna.forEach((item, i) => {
-    const y = startY + i * rowSpacing;
-
-    // Label
-    ctx.font = labelFont;
-    ctx.fillStyle = COLORS.dnaLabel;
-    ctx.fillText(item.label, startX, y);
-
-    // Bar background
-    const barX = startX + labelWidth;
-    const barY = y - barHeight + 2;
-
-    ctx.fillStyle = COLORS.dnaBarBg;
-    roundRect(ctx, barX, barY, barWidth, barHeight, barRadius);
-    ctx.fill();
-
-    // Bar fill
-    const fillWidth = Math.round((item.value / 99) * barWidth);
-    const accentGrad = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
-    accentGrad.addColorStop(0, COLORS.accent);
-    accentGrad.addColorStop(1, COLORS.accentDim);
-    ctx.fillStyle = accentGrad;
-    roundRect(ctx, barX, barY, fillWidth, barHeight, barRadius);
-    ctx.fill();
-
-    // Value
-    ctx.font = valueFont;
-    ctx.fillStyle = COLORS.dnaValue;
-    ctx.fillText(
-      String(item.value),
-      barX + barWidth + 16,
-      y
-    );
-  });
-}
-
-function drawSignal(ctx: CanvasRenderingContext2D, signalId: string) {
-  ctx.font = SIGNAL_CONFIG.font;
-  ctx.fillStyle = COLORS.signalLabel;
-  ctx.fillText("SIGNAL // ", SIGNAL_CONFIG.x, SIGNAL_CONFIG.y);
-  const labelWidth = ctx.measureText("SIGNAL // ").width;
-  ctx.fillStyle = COLORS.signalValue;
-  ctx.fillText(signalId, SIGNAL_CONFIG.x + labelWidth, SIGNAL_CONFIG.y);
-}
-
-function drawFooter(ctx: CanvasRenderingContext2D) {
-  ctx.font = FOOTER_CONFIG.font;
-  ctx.fillStyle = COLORS.footerText;
-  ctx.fillText("#FrameInGoa", FOOTER_CONFIG.x, FOOTER_CONFIG.y);
-
-  const tagWidth = ctx.measureText("#FrameInGoa").width;
-  ctx.fillStyle = COLORS.divider;
-  ctx.fillText("  ·  ", FOOTER_CONFIG.x + tagWidth, FOOTER_CONFIG.y);
-  const dotWidth = ctx.measureText("  ·  ").width;
-
-  ctx.fillStyle = COLORS.accent;
-  ctx.fillText("SHIP > TALK", FOOTER_CONFIG.x + tagWidth + dotWidth, FOOTER_CONFIG.y);
-}
-
 // ─── Main render function ─────────────────────────────────────────────────────
 
 export async function renderBuilderCard(
   input: RenderBuilderCardInput
 ): Promise<Blob> {
-  // Ensure fonts are loaded before rendering text on canvas
+  // Ensure custom font system-ui is ready
   try {
     await document.fonts.ready;
-    await document.fonts.load("700 68px 'Space Mono'");
-    await document.fonts.load("400 26px 'Space Mono'");
   } catch {
-    // Non-fatal: canvas will fall back to monospace
+    // Non-fatal
   }
 
   const canvas = document.createElement("canvas");
@@ -279,29 +116,135 @@ export async function renderBuilderCard(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context not available.");
 
-  // 1. Background
-  drawBackground(ctx);
+  // 1. Draw solid background
+  ctx.fillStyle = COLORS.background;
+  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-  // 2. Header
-  drawHeader(ctx);
+  // 2. Load and Draw SVG assets (Borders, Circuit Board Patterns)
+  try {
+    const [technicalLines, circuitTopRight, circuitBottomRight] = await Promise.all([
+      loadImage("/graphics/technical-lines.svg"),
+      loadImage("/graphics/circuit-top-right.svg"),
+      loadImage("/graphics/circuit-bottom-right.svg"),
+    ]);
 
-  // 3. Load and draw photo
-  const img = await loadImage(input.imageUrl);
-  await drawImageArea(ctx, img, input);
+    ctx.drawImage(technicalLines, 0, 0, CARD_WIDTH, CARD_HEIGHT);
+    ctx.drawImage(circuitTopRight, CARD_WIDTH - 350 - 25, 25, 350, 300);
+    ctx.drawImage(circuitBottomRight, CARD_WIDTH - 400 - 25, CARD_HEIGHT - 350 - 25, 400, 350);
+  } catch (err) {
+    console.warn("Could not load decoration SVGs for card render, using solid style:", err);
+  }
 
-  // 4. Text
-  drawName(ctx, input.name);
-  drawRole(ctx, input.role);
-  drawTitle(ctx, input.builderTitle);
+  // 3. Draw Header Text
+  ctx.fillStyle = COLORS.white;
+  ctx.font = "bold 44px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("HH GOA 2026", CARD_CONFIG.footer.x, 122);
 
-  // 5. DNA bars
-  drawDna(ctx, input.dna);
+  // 4. Draw User Photo inside photo frame
+  const { x, y, width, height, radius } = CARD_CONFIG.photo;
 
-  // 6. Signal ID + footer
-  drawSignal(ctx, input.signalId);
-  drawFooter(ctx);
+  // Frame Background
+  ctx.fillStyle = "#12171E";
+  ctx.fillRect(x, y, width, height);
 
-  // 7. Export as PNG blob
+  // Draw Photo
+  if (input.imageUrl) {
+    try {
+      ctx.save();
+      // Clip to photo container bounds
+      ctx.rect(x, y, width, height);
+      ctx.clip();
+
+      const img = await loadImage(input.imageUrl);
+
+      if (input.fitMode === "fill") {
+        drawCover(ctx, img, x, y, width, height,
+          input.orientation === "portrait" ? "top" : "center");
+      } else {
+        // Smart Fit
+        if (input.orientation === "landscape") {
+          await drawBlurBackground(ctx, img, x, y, width, height);
+          drawContain(ctx, img, x, y, width, height);
+        } else if (input.orientation === "portrait") {
+          drawCover(ctx, img, x, y, width, height, "top");
+        } else {
+          drawCover(ctx, img, x, y, width, height, "center");
+        }
+      }
+      ctx.restore();
+    } catch (err) {
+      console.error("Failed to draw user image:", err);
+    }
+  }
+
+  // Draw white border around photo frame
+  ctx.strokeStyle = COLORS.white;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x, y, width, height);
+
+  // 5. Draw Name (Centered, dynamic sizing)
+  const formattedName = input.name.trim() ? input.name.toUpperCase() : "YOUR NAME";
+  const nameLen = formattedName.length;
+  let nameSize = 50;
+  if (nameLen > 24) nameSize = 32;
+  else if (nameLen > 16) nameSize = 40;
+
+  ctx.fillStyle = COLORS.white;
+  ctx.font = `bold ${nameSize}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.fillText(formattedName, CARD_CONFIG.name.centerX, CARD_CONFIG.name.baselineY);
+
+  // 6. Draw PARTICIPANT Label (Centered)
+  ctx.fillStyle = COLORS.gray;
+  ctx.font = "500 30px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("PARTICIPANT", CARD_CONFIG.participant.centerX, CARD_CONFIG.participant.baselineY);
+
+  // 7. Draw Role (Centered)
+  const formattedRole = `ROLE - ${input.role.trim() ? input.role.toUpperCase() : "DEVELOPER"}`;
+  ctx.fillStyle = COLORS.white;
+  ctx.font = "bold 36px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(formattedRole, CARD_CONFIG.role.centerX, CARD_CONFIG.role.baselineY);
+
+  // 8. Draw Team Box Container
+  const tb = CARD_CONFIG.teamBox;
+  // Fill Box
+  ctx.fillStyle = "rgba(10, 14, 20, 0.75)";
+  ctx.save();
+  roundRect(ctx, tb.x, tb.y, tb.width, tb.height, 8);
+  ctx.fill();
+  
+  // Box border
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw Team Text (Centered)
+  const formattedTeam = `TEAM - ${input.team.trim() ? input.team.toUpperCase() : "CODERUSH"}`;
+  ctx.fillStyle = COLORS.red;
+  ctx.font = "bold 38px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(formattedTeam, CARD_CONFIG.name.centerX, tb.y + 68);
+
+  // 9. Draw Footer Info (Bottom-Left)
+  ctx.textAlign = "left";
+  
+  ctx.fillStyle = COLORS.white;
+  ctx.font = "bold 28px sans-serif";
+  ctx.fillText("BUILDER @ HH GOA", CARD_CONFIG.footer.x, CARD_CONFIG.footer.baselineY);
+  
+  ctx.fillStyle = COLORS.gray;
+  ctx.font = "400 24px sans-serif";
+  ctx.fillText("GOA • OCT 28–31 • 2026", CARD_CONFIG.footer.x, CARD_CONFIG.footer.baselineY + 35);
+  
+  ctx.fillStyle = COLORS.gray;
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillText("#FrameInGoa", CARD_CONFIG.footer.x, CARD_CONFIG.footer.baselineY + 70);
+
+  // 10. Export as PNG Blob
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {

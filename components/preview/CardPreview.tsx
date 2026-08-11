@@ -1,20 +1,18 @@
 "use client";
 
-import type { BuilderDnaItem, FitMode, Orientation } from "@/types";
+import type { FitMode, Orientation } from "@/types";
 import {
   CARD_WIDTH,
   CARD_HEIGHT,
-  IMAGE_AREA,
+  CARD_CONFIG,
   COLORS,
 } from "@/lib/renderer/cardConfig";
 
 interface CardPreviewProps {
   imageUrl: string | null;
   name: string;
-  role: string | null;
-  builderTitle: string;
-  dna: BuilderDnaItem[];
-  signalId: string;
+  role: string;
+  team: string;
   fitMode: FitMode;
   orientation: Orientation | null;
 }
@@ -33,9 +31,7 @@ export function CardPreview({
   imageUrl,
   name,
   role,
-  builderTitle,
-  dna,
-  signalId,
+  team,
   fitMode,
   orientation,
 }: CardPreviewProps) {
@@ -54,6 +50,18 @@ export function CardPreview({
     return "center";
   };
 
+  // Font size auto-scaler for long names
+  const getNameFontSize = (nameStr: string) => {
+    const len = nameStr.length || 9; // "YOUR NAME" is 9 chars
+    if (len > 24) return px(32);
+    if (len > 16) return px(40);
+    return px(50);
+  };
+
+  const formattedName = name.trim() ? name.toUpperCase() : "YOUR NAME";
+  const formattedRole = `ROLE - ${role.trim() ? role.toUpperCase() : "DEVELOPER"}`;
+  const formattedTeam = `TEAM - ${team.trim() ? team.toUpperCase() : "CODERUSH"}`;
+
   return (
     // Outer responsive container: takes full available width, max 420px
     <div className="w-full max-w-[420px] mx-auto" style={{ aspectRatio: `${CARD_WIDTH} / ${CARD_HEIGHT}` }}>
@@ -64,7 +72,7 @@ export function CardPreview({
           width: `${DESIGN_WIDTH}px`,
           height: `${DESIGN_HEIGHT}px`,
           background: COLORS.background,
-          fontFamily: "'Space Mono', 'Courier New', monospace",
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           // Scale to fill the parent container with iOS Safari hardware acceleration
           transform: `scale(var(--card-scale, 1))`,
           WebkitTransform: `scale(var(--card-scale, 1))`,
@@ -91,44 +99,66 @@ export function CardPreview({
           window.addEventListener("orientationchange", updateScale);
         }}
       >
-        {/* Subtle top glow */}
-        <div
-          className="absolute inset-0 pointer-events-none"
+        {/* Fixed Visual Assets (SVGs) */}
+        {/* Technical lines & outer borders */}
+        <img
+          src="/graphics/technical-lines.svg"
+          alt="Technical Borders"
+          className="absolute inset-0 w-full h-full pointer-events-none z-10"
+        />
+
+        {/* Top Right Circuit */}
+        <img
+          src="/graphics/circuit-top-right.svg"
+          alt="Top Right Circuit"
+          className="absolute pointer-events-none z-10"
           style={{
-            background:
-              "radial-gradient(ellipse 80% 30% at 50% 0%, rgba(183,255,0,0.04) 0%, transparent 70%)",
+            right: px(25),
+            top: px(25),
+            width: px(350),
+            height: px(300),
           }}
         />
 
-        {/* Header */}
-        <div
-          className="absolute flex items-baseline gap-1"
+        {/* Bottom Right Circuit */}
+        <img
+          src="/graphics/circuit-bottom-right.svg"
+          alt="Bottom Right Circuit"
+          className="absolute pointer-events-none z-10"
           style={{
-            left: px(60),
-            top: px(47),
-            fontSize: px(32),
-            fontWeight: 700,
-            letterSpacing: "0.05em",
+            right: px(25),
+            bottom: px(25),
+            width: px(400),
+            height: px(350),
+          }}
+        />
+
+        {/* Header Text */}
+        <div
+          className="absolute font-bold uppercase text-white tracking-widest"
+          style={{
+            left: px(CARD_CONFIG.footer.x),
+            top: px(78),
+            fontSize: px(44),
+            letterSpacing: "0.06em",
           }}
         >
-          <span style={{ color: COLORS.accent }}>HH GOA</span>
-          <span style={{ color: COLORS.footerText, margin: `0 ${px(6)}` }}>//</span>
-          <span style={{ color: COLORS.white }}>2026</span>
+          HH GOA 2026
         </div>
 
         {/* Photo area */}
         <div
           className="absolute overflow-hidden"
           style={{
-            left: px(IMAGE_AREA.x),
-            top: px(IMAGE_AREA.y),
-            width: px(IMAGE_AREA.width),
-            height: px(IMAGE_AREA.height),
-            borderRadius: px(IMAGE_AREA.radius),
-            border: `1px solid ${COLORS.imageFrameBorder}`,
-            background: COLORS.surface,
+            left: px(CARD_CONFIG.photo.x),
+            top: px(CARD_CONFIG.photo.y),
+            width: px(CARD_CONFIG.photo.width),
+            height: px(CARD_CONFIG.photo.height),
+            border: `${px(4)} solid ${COLORS.white}`,
+            background: "#12171E",
             WebkitBackfaceVisibility: "hidden",
             backfaceVisibility: "hidden",
+            zIndex: 20,
           }}
         >
           {imageUrl ? (
@@ -168,11 +198,11 @@ export function CardPreview({
                 style={{
                   width: px(80),
                   height: px(80),
-                  background: COLORS.imageFrameBorder,
+                  background: "rgba(255,255,255,0.08)",
                 }}
               >
                 <svg
-                  style={{ width: px(32), height: px(32), color: COLORS.dnaLabel }}
+                  style={{ width: px(32), height: px(32), color: COLORS.gray }}
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
@@ -180,9 +210,10 @@ export function CardPreview({
                 </svg>
               </div>
               <span
+                className="font-mono"
                 style={{
-                  color: COLORS.footerText,
-                  fontSize: px(18),
+                  color: COLORS.gray,
+                  fontSize: px(16),
                   letterSpacing: "0.15em",
                   textTransform: "uppercase",
                 }}
@@ -193,135 +224,127 @@ export function CardPreview({
           )}
         </div>
 
-        {/* Name */}
+        {/* Dynamic Name */}
         <div
-          className="absolute font-bold truncate"
+          className="absolute font-bold text-center truncate"
           style={{
-            left: px(60),
-            top: px(900),
-            right: px(60),
-            fontSize: px(56),
-            color: COLORS.nameText,
-            letterSpacing: "0.02em",
+            left: px(50),
+            width: px(900),
+            top: px(CARD_CONFIG.name.baselineY),
+            fontSize: getNameFontSize(formattedName),
+            color: COLORS.white,
+            letterSpacing: "0.03em",
             lineHeight: 1,
+            zIndex: 20,
           }}
         >
-          {name.trim() ? name.toUpperCase() : (
-            <span style={{ color: COLORS.footerText }}>YOUR NAME</span>
-          )}
+          {formattedName}
         </div>
 
-        {/* Role badge */}
+        {/* PARTICIPANT Label */}
         <div
-          className="absolute"
+          className="absolute text-center uppercase tracking-widest"
           style={{
-            left: px(60),
-            top: px(975),
-            fontSize: px(24),
-            color: COLORS.roleText,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
+            left: px(50),
+            width: px(900),
+            top: px(CARD_CONFIG.participant.baselineY),
+            fontSize: px(30),
+            color: COLORS.gray,
+            fontWeight: 500,
+            letterSpacing: "0.15em",
+            zIndex: 20,
           }}
         >
-          {role ? `[ ${role} ]` : <span style={{ color: COLORS.footerText }}>[ SELECT ROLE ]</span>}
+          PARTICIPANT
         </div>
 
-        {/* Builder title */}
+        {/* Role / Stack Badge */}
         <div
-          className="absolute"
+          className="absolute text-center font-bold uppercase tracking-wider"
           style={{
-            left: px(60),
-            top: px(1015),
-            fontSize: px(21),
-            color: COLORS.titleText,
-            letterSpacing: "0.06em",
+            left: px(50),
+            width: px(900),
+            top: px(CARD_CONFIG.role.baselineY),
+            fontSize: px(36),
+            color: COLORS.white,
+            letterSpacing: "0.04em",
+            zIndex: 20,
           }}
         >
-          {builderTitle}
+          {formattedRole}
         </div>
 
-        {/* DNA bars */}
+        {/* Team Box Container */}
+        <div
+          className="absolute flex items-center justify-center rounded-lg overflow-hidden border"
+          style={{
+            left: px(CARD_CONFIG.teamBox.x),
+            top: px(CARD_CONFIG.teamBox.y),
+            width: px(CARD_CONFIG.teamBox.width),
+            height: px(CARD_CONFIG.teamBox.height),
+            background: "rgba(10, 14, 20, 0.75)",
+            border: "1.5px solid rgba(255, 255, 255, 0.12)",
+            boxShadow: "inset 0 0 15px rgba(239, 68, 68, 0.05)",
+            zIndex: 20,
+          }}
+        >
+          {/* Subtle Corner Brackets for Tech Aesthetic */}
+          <div className="absolute left-1 top-1 w-2 h-2 border-l border-t border-red-500/40" />
+          <div className="absolute right-1 top-1 w-2 h-2 border-r border-t border-red-500/40" />
+          <div className="absolute left-1 bottom-1 w-2 h-2 border-l border-b border-red-500/40" />
+          <div className="absolute right-1 bottom-1 w-2 h-2 border-r border-b border-red-500/40" />
+
+          <span
+            className="font-bold tracking-widest text-center px-4 truncate"
+            style={{
+              color: COLORS.red,
+              fontSize: px(38),
+              letterSpacing: "0.08em",
+            }}
+          >
+            {formattedTeam}
+          </span>
+        </div>
+
+        {/* Footer info (Bottom-Left) */}
         <div
           className="absolute flex flex-col"
           style={{
-            left: px(60),
-            top: px(1068),
-            gap: px(22),
-            width: px(960),
+            left: px(CARD_CONFIG.footer.x),
+            top: px(CARD_CONFIG.footer.baselineY),
+            gap: px(6),
+            zIndex: 20,
           }}
         >
-          {dna.map((item) => (
-            <div key={item.label} className="flex items-center" style={{ gap: px(10) }}>
-              <span
-                style={{
-                  fontSize: px(15),
-                  color: COLORS.dnaLabel,
-                  width: px(90),
-                  letterSpacing: "0.1em",
-                }}
-              >
-                {item.label}
-              </span>
-              <div
-                className="relative rounded-full overflow-hidden"
-                style={{
-                  flex: 1,
-                  maxWidth: px(280),
-                  height: px(5),
-                  background: COLORS.dnaBarBg,
-                }}
-              >
-                <div
-                  className="absolute left-0 top-0 h-full rounded-full"
-                  style={{
-                    width: `${(item.value / 99) * 100}%`,
-                    background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.accentDim})`,
-                  }}
-                />
-              </div>
-              <span
-                style={{
-                  fontSize: px(15),
-                  color: COLORS.dnaValue,
-                  fontWeight: 700,
-                  width: px(32),
-                  textAlign: "right",
-                }}
-              >
-                {item.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Signal ID */}
-        <div
-          className="absolute flex items-baseline"
-          style={{
-            left: px(60),
-            bottom: px(68),
-            fontSize: px(18),
-            letterSpacing: "0.08em",
-          }}
-        >
-          <span style={{ color: COLORS.signalLabel }}>SIGNAL // </span>
-          <span style={{ color: COLORS.accent, marginLeft: px(4) }}>{signalId}</span>
-        </div>
-
-        {/* Footer */}
-        <div
-          className="absolute flex items-center"
-          style={{
-            left: px(60),
-            bottom: px(34),
-            fontSize: px(16),
-            letterSpacing: "0.06em",
-            gap: px(8),
-          }}
-        >
-          <span style={{ color: COLORS.footerText }}>#FrameInGoa</span>
-          <span style={{ color: COLORS.divider }}>·</span>
-          <span style={{ color: COLORS.accent }}>SHIP &gt; TALK</span>
+          <span
+            className="font-bold tracking-wider"
+            style={{
+              color: COLORS.white,
+              fontSize: px(28),
+              lineHeight: 1.2,
+            }}
+          >
+            BUILDER @ HH GOA
+          </span>
+          <span
+            style={{
+              color: COLORS.gray,
+              fontSize: px(24),
+              lineHeight: 1.2,
+            }}
+          >
+            GOA • OCT 28–31 • 2026
+          </span>
+          <span
+            className="font-bold"
+            style={{
+              color: COLORS.gray,
+              fontSize: px(24),
+              lineHeight: 1.2,
+            }}
+          >
+            #FrameInGoa
+          </span>
         </div>
       </div>
     </div>

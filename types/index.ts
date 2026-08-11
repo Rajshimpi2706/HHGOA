@@ -27,28 +27,10 @@ export type ImageState = {
 
 // ─── Builder State ────────────────────────────────────────────────────────────
 
-export type Role =
-  | "CODE"
-  | "AI"
-  | "DESIGN"
-  | "PRODUCT"
-  | "GROWTH"
-  | "WEB3"
-  | "FOUNDER"
-  | "OTHER";
-
-export type BuilderDnaItem = {
-  label: string;
-  value: number; // 60–99
-};
-
 export type BuilderState = {
   name: string;
-  role: Role | null;
-  stack: string;
-  builderTitle: string;
-  dna: BuilderDnaItem[];
-  signalId: string;
+  role: string;
+  team: string;
 };
 
 // ─── Renderer Input ───────────────────────────────────────────────────────────
@@ -57,9 +39,7 @@ export type RenderBuilderCardInput = {
   imageUrl: string;
   name: string;
   role: string;
-  builderTitle: string;
-  signalId: string;
-  dna: BuilderDnaItem[];
+  team: string;
   fitMode: FitMode;
   orientation: Orientation;
 };

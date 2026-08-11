@@ -3,15 +3,12 @@
 import { useCallback, useState } from "react";
 import type { Area } from "react-easy-crop";
 
-import type { ImageState, BuilderState, FitMode, Role } from "@/types";
+import type { ImageState, BuilderState, FitMode } from "@/types";
 import { validateFile, isHeicFile } from "@/lib/image/validateFile";
 import { convertHeicToJpeg } from "@/lib/image/convertHeic";
 import { normalizeImage } from "@/lib/image/normalizeImage";
 import { getOrientation } from "@/lib/image/orientation";
 import { cropImage } from "@/lib/image/cropImage";
-import { getBuilderTitle } from "@/lib/builder/titles";
-import { getBuilderDna } from "@/lib/builder/builderDna";
-import { getSignalId } from "@/lib/builder/signalId";
 
 import { Dropzone } from "@/components/upload/Dropzone";
 import { CardPreview } from "@/components/preview/CardPreview";
@@ -39,34 +36,15 @@ const INITIAL_IMAGE_STATE: ImageState = {
 
 const INITIAL_BUILDER_STATE: BuilderState = {
   name: "",
-  role: null,
-  stack: "",
-  builderTitle: "BUILDER",
-  dna: [],
-  signalId: "----",
+  role: "",
+  team: "",
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function computeBuilderDerived(
-  name: string,
-  role: Role | null
-): Pick<BuilderState, "builderTitle" | "dna" | "signalId"> {
-  return {
-    builderTitle: getBuilderTitle(name, role),
-    dna: getBuilderDna(name, role),
-    signalId: getSignalId(name, role),
-  };
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [imageState, setImageState] = useState<ImageState>(INITIAL_IMAGE_STATE);
-  const [builderState, setBuilderState] = useState<BuilderState>({
-    ...INITIAL_BUILDER_STATE,
-    ...computeBuilderDerived("", null),
-  });
+  const [builderState, setBuilderState] = useState<BuilderState>(INITIAL_BUILDER_STATE);
   const [showCropModal, setShowCropModal] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState<"edit" | "preview">("edit");
 
@@ -171,25 +149,21 @@ export default function HomePage() {
   // ── Builder form handlers ──────────────────────────────────────────────────
 
   const handleNameChange = useCallback((name: string) => {
-    setBuilderState((prev) => ({
-      ...prev,
-      name,
-      ...computeBuilderDerived(name, prev.role),
-    }));
+    setBuilderState((prev) => ({ ...prev, name }));
   }, []);
 
-  const handleRoleChange = useCallback((role: Role) => {
-    setBuilderState((prev) => ({
-      ...prev,
-      role,
-      ...computeBuilderDerived(prev.name, role),
-    }));
+  const handleRoleChange = useCallback((role: string) => {
+    setBuilderState((prev) => ({ ...prev, role }));
+  }, []);
+
+  const handleTeamChange = useCallback((team: string) => {
+    setBuilderState((prev) => ({ ...prev, team }));
   }, []);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const hasImage = !!imageState.currentUrl;
-  const isReady = hasImage && !!builderState.role;
+  const isReady = hasImage && !!builderState.name.trim() && !!builderState.role.trim() && !!builderState.team.trim();
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -222,7 +196,7 @@ export default function HomePage() {
           Build Your Signal
         </h1>
         <p className="font-mono text-xs sm:text-sm text-[#475569] max-w-sm mx-auto">
-          Upload a photo. Choose your role. Download your Builder Signal.
+          Upload a photo. Fill in details. Download your Builder Signal.
         </p>
       </section>
 
@@ -296,8 +270,10 @@ export default function HomePage() {
               <BuilderForm
                 name={builderState.name}
                 role={builderState.role}
+                team={builderState.team}
                 onNameChange={handleNameChange}
                 onRoleChange={handleRoleChange}
+                onTeamChange={handleTeamChange}
               />
             </section>
 
@@ -347,7 +323,7 @@ export default function HomePage() {
               </section>
             )}
 
-            {/* Share buttons (only when ready) */}
+            {/* Share & Download buttons (only when ready) */}
             {isReady && (
               <section aria-label="Download and share">
                 <div className="border-t border-[#1E2D3A] pt-5">
@@ -358,10 +334,8 @@ export default function HomePage() {
                     renderInput={{
                       imageUrl: imageState.currentUrl!,
                       name: builderState.name,
-                      role: builderState.role ?? "OTHER",
-                      builderTitle: builderState.builderTitle,
-                      signalId: builderState.signalId,
-                      dna: builderState.dna,
+                      role: builderState.role,
+                      team: builderState.team,
                       fitMode: imageState.fitMode,
                       orientation: imageState.orientation ?? "portrait",
                     }}
@@ -372,9 +346,9 @@ export default function HomePage() {
             )}
 
             {/* CTA hint */}
-            {hasImage && !builderState.role && (
+            {hasImage && (!builderState.name.trim() || !builderState.role.trim() || !builderState.team.trim()) && (
               <p className="font-mono text-xs text-[#B7FF00]/60 tracking-widest text-center animate-pulse">
-                ↑ Select your role to unlock download
+                ↑ Complete all fields to unlock download
               </p>
             )}
 
@@ -407,14 +381,12 @@ export default function HomePage() {
               imageUrl={imageState.currentUrl}
               name={builderState.name}
               role={builderState.role}
-              builderTitle={builderState.builderTitle}
-              dna={builderState.dna}
-              signalId={builderState.signalId}
+              team={builderState.team}
               fitMode={imageState.fitMode}
               orientation={imageState.orientation}
             />
             <p className="font-mono text-[10px] text-[#1E2D3A] tracking-wide text-center">
-              Final export: 1080 × 1350 PNG
+              Final export: 1000 × 1500 PNG
             </p>
           </div>
         </div>
