@@ -45,26 +45,18 @@ export function CardPreview({
   return (
     <div className="w-full max-w-[420px] mx-auto">
       {/* Outer card wrapper that enforces standard 2:3 aspect ratio */}
-      <div 
-        className="relative bg-[#090b0e] border border-[#1e293b] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] aspect-[2/3] circuit-bg flex flex-col p-6 items-center justify-between w-full transition-all duration-300 hover:shadow-[0_0_60px_rgba(183,255,0,0.15)] group" 
+      <div
+        className="relative bg-[#090b0e] border border-[#1e293b] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] aspect-[2/3] circuit-bg flex flex-col p-6 items-center justify-between w-full transition-all duration-300 hover:shadow-[0_0_60px_rgba(183,255,0,0.15)] group"
         id="card-preview"
       >
         {/* Neon green top edge glow line */}
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#B7FF00]/50 to-transparent" />
 
         {/* ── HIGH TECH SVG CIRCUIT PATTERNS IN ALL FOUR CORNERS ── */}
-        
-        {/* Top-Left Corner Circuit */}
-        <svg className="absolute top-4 left-4 w-20 h-20 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
-          <path d="M 0 40 L 0 0 L 40 0" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M 8 50 L 8 8 L 50 8" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
-          <circle cx="50" cy="8" r="2" fill="currentColor" />
-          <path d="M 0 20 L 16 20 L 28 32 L 28 55" stroke="currentColor" strokeWidth="1.5" />
-          <circle cx="28" cy="55" r="2" fill="currentColor" />
-        </svg>
+
 
         {/* Top-Right Corner Circuit */}
-        <svg className="absolute top-4 right-4 w-20 h-20 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
+        <svg className="absolute top-4 right-4 w-50 h-50 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
           <path d="M 100 40 L 100 0 L 60 0" stroke="currentColor" strokeWidth="1.5" />
           <path d="M 92 50 L 92 8 L 50 8" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
           <circle cx="50" cy="8" r="2" fill="currentColor" />
@@ -72,17 +64,17 @@ export function CardPreview({
           <circle cx="72" cy="55" r="2" fill="currentColor" />
         </svg>
 
-        {/* Bottom-Left Corner Circuit */}
-        <svg className="absolute bottom-4 left-4 w-20 h-20 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
+        {/* Bottom-Left Corner Circuit
+        <svg className="absolute bottom-4 left-4 w-40 h-40 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
           <path d="M 0 60 L 0 100 L 40 100" stroke="currentColor" strokeWidth="1.5" />
           <path d="M 8 50 L 8 92 L 50 92" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
           <circle cx="50" cy="92" r="2" fill="currentColor" />
           <path d="M 0 80 L 16 80 L 28 68 L 28 45" stroke="currentColor" strokeWidth="1.5" />
           <circle cx="28" cy="45" r="2" fill="currentColor" />
-        </svg>
+        </svg> */}
 
         {/* Bottom-Right Corner Circuit */}
-        <svg className="absolute bottom-4 right-4 w-20 h-20 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
+        <svg className="absolute bottom-4 right-4 w-50 h-50 text-[#B7FF00]/25 pointer-events-none z-0" viewBox="0 0 100 100" fill="none">
           <path d="M 100 60 L 100 100 L 60 100" stroke="currentColor" strokeWidth="1.5" />
           <path d="M 92 50 L 92 92 L 50 92" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
           <circle cx="50" cy="92" r="2" fill="currentColor" />
@@ -96,15 +88,15 @@ export function CardPreview({
             <span className="text-white font-bold text-xl tracking-[0.2em] font-sans block drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
               HH GOA 2026
             </span>
-            <span className="text-[9px] font-mono text-[#B7FF00] tracking-widest bg-[#B7FF00]/10 px-2 py-0.5 rounded border border-[#B7FF00]/20 uppercase">
+            {/* <span className="text-[9px] font-mono text-[#B7FF00] tracking-widest bg-[#B7FF00]/10 px-2 py-0.5 rounded border border-[#B7FF00]/20 uppercase">
               HACKER
-            </span>
+            </span> */}
           </div>
           <div className="h-[1px] w-full bg-gradient-to-r from-white/30 via-white/10 to-transparent mt-2"></div>
         </div>
 
         {/* High-Tech Photo Container */}
-        <div className="relative w-36 h-36 bg-[#12161b] border border-white/10 p-1 overflow-hidden z-10 mt-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:border-[#B7FF00]/30 shrink-0">
+        <div className="relative w-45 h-45 bg-[#12161b] border border-white/10 p-1 overflow-hidden z-10 mt-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:border-[#B7FF00]/30 shrink-0">
           {/* Futuristic crosshairs on corners */}
           <div className="absolute top-1 left-1 w-2.5 h-2.5 border-l border-t border-[#B7FF00]" />
           <div className="absolute top-1 right-1 w-2.5 h-2.5 border-r border-t border-[#B7FF00]" />
@@ -127,9 +119,9 @@ export function CardPreview({
                     }}
                   />
                 )}
-                <img 
-                  src={imageUrl} 
-                  alt="User Photo" 
+                <img
+                  src={imageUrl}
+                  alt="User Photo"
                   className="w-full h-full"
                   style={{
                     objectFit: getObjectFit(),
@@ -159,7 +151,7 @@ export function CardPreview({
             </h3>
             <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-[#B7FF00]/40 to-transparent mx-auto"></div>
           </div>
-          
+
           <p className="text-white/80 text-[10px] font-bold tracking-[0.35em] mt-1.5">
             PARTICIPANT
           </p>

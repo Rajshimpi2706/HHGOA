@@ -153,55 +153,29 @@ export async function renderBuilderCard(
     }
   }
 
-  // 3. Draw circuit board corners (representing SVGs on all 4 corners)
+  // 3. Draw circuit board corners (matching the user's updated selection: Top-Right & Bottom-Right only, scaled up)
+  // Scaled up by ~2.5x to match w-50 h-50 design
   
-  // Top-Left Corner
-  drawCircuitPath(ctx, 40, 140, [{ x: 40, y: 40 }, { x: 140, y: 40 }], null, 2);
-  drawCircuitPath(ctx, 60, 160, [{ x: 60, y: 60 }, { x: 160, y: 60 }], [4, 4], 1.2);
-  drawCircuitDot(ctx, 160, 60, 4);
-  drawCircuitPath(ctx, 40, 90, [{ x: 80, y: 90 }, { x: 110, y: 120 }, { x: 110, y: 175 }], null, 2);
-  drawCircuitDot(ctx, 110, 175, 4);
+  // Top-Right Corner (w-50 h-50 -> ~476px wide/high)
+  const trOffsetLimit = 476;
+  drawCircuitPath(ctx, CARD_WIDTH - 40, 240, [{ x: CARD_WIDTH - 40, y: 40 }, { x: CARD_WIDTH - 240, y: 40 }], null, 3);
+  drawCircuitPath(ctx, CARD_WIDTH - 65, 270, [{ x: CARD_WIDTH - 65, y: 65 }, { x: CARD_WIDTH - 270, y: 65 }], [5, 5], 1.5);
+  drawCircuitDot(ctx, CARD_WIDTH - 270, 65, 6);
+  drawCircuitPath(ctx, CARD_WIDTH - 40, 150, [{ x: CARD_WIDTH - 130, y: 150 }, { x: CARD_WIDTH - 180, y: 200 }, { x: CARD_WIDTH - 180, y: 310 }], null, 3);
+  drawCircuitDot(ctx, CARD_WIDTH - 180, 310, 6);
 
-  // Top-Right Corner
-  drawCircuitPath(ctx, CARD_WIDTH - 40, 140, [{ x: CARD_WIDTH - 40, y: 40 }, { x: CARD_WIDTH - 140, y: 40 }], null, 2);
-  drawCircuitPath(ctx, CARD_WIDTH - 60, 160, [{ x: CARD_WIDTH - 60, y: 60 }, { x: CARD_WIDTH - 160, y: 60 }], [4, 4], 1.2);
-  drawCircuitDot(ctx, CARD_WIDTH - 160, 60, 4);
-  drawCircuitPath(ctx, CARD_WIDTH - 40, 90, [{ x: CARD_WIDTH - 80, y: 90 }, { x: CARD_WIDTH - 110, y: 120 }, { x: CARD_WIDTH - 110, y: 175 }], null, 2);
-  drawCircuitDot(ctx, CARD_WIDTH - 110, 175, 4);
+  // Bottom-Right Corner (w-50 h-50 -> ~476px wide/high)
+  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 240, [{ x: CARD_WIDTH - 40, y: CARD_HEIGHT - 40 }, { x: CARD_WIDTH - 240, y: CARD_HEIGHT - 40 }], null, 3);
+  drawCircuitPath(ctx, CARD_WIDTH - 65, CARD_HEIGHT - 270, [{ x: CARD_WIDTH - 65, y: CARD_HEIGHT - 65 }, { x: CARD_WIDTH - 270, y: CARD_HEIGHT - 65 }], [5, 5], 1.5);
+  drawCircuitDot(ctx, CARD_WIDTH - 270, CARD_HEIGHT - 65, 6);
+  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 150, [{ x: CARD_WIDTH - 130, y: CARD_HEIGHT - 150 }, { x: CARD_WIDTH - 180, y: CARD_HEIGHT - 200 }, { x: CARD_WIDTH - 180, y: CARD_HEIGHT - 310 }], null, 3);
+  drawCircuitDot(ctx, CARD_WIDTH - 180, CARD_HEIGHT - 310, 6);
 
-  // Bottom-Left Corner
-  drawCircuitPath(ctx, 40, CARD_HEIGHT - 140, [{ x: 40, y: CARD_HEIGHT - 40 }, { x: 140, y: CARD_HEIGHT - 40 }], null, 2);
-  drawCircuitPath(ctx, 60, CARD_HEIGHT - 160, [{ x: 60, y: CARD_HEIGHT - 60 }, { x: 160, y: CARD_HEIGHT - 60 }], [4, 4], 1.2);
-  drawCircuitDot(ctx, 160, CARD_HEIGHT - 60, 4);
-  drawCircuitPath(ctx, 40, CARD_HEIGHT - 90, [{ x: 80, y: CARD_HEIGHT - 90 }, { x: 110, y: CARD_HEIGHT - 120 }, { x: 110, y: CARD_HEIGHT - 175 }], null, 2);
-  drawCircuitDot(ctx, 110, CARD_HEIGHT - 175, 4);
-
-  // Bottom-Right Corner
-  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 140, [{ x: CARD_WIDTH - 40, y: CARD_HEIGHT - 40 }, { x: CARD_WIDTH - 140, y: CARD_HEIGHT - 40 }], null, 2);
-  drawCircuitPath(ctx, CARD_WIDTH - 60, CARD_HEIGHT - 160, [{ x: CARD_WIDTH - 60, y: CARD_HEIGHT - 60 }, { x: CARD_WIDTH - 160, y: CARD_HEIGHT - 60 }], [4, 4], 1.2);
-  drawCircuitDot(ctx, CARD_WIDTH - 160, CARD_HEIGHT - 60, 4);
-  drawCircuitPath(ctx, CARD_WIDTH - 40, CARD_HEIGHT - 90, [{ x: CARD_WIDTH - 80, y: CARD_HEIGHT - 90 }, { x: CARD_WIDTH - 110, y: CARD_HEIGHT - 120 }, { x: CARD_WIDTH - 110, y: CARD_HEIGHT - 175 }], null, 2);
-  drawCircuitDot(ctx, CARD_WIDTH - 110, CARD_HEIGHT - 175, 4);
-
-  // 4. Draw Header Text "HH GOA 2026"
+  // 4. Draw Top Header Text "HH GOA 2026"
   ctx.fillStyle = "#FFFFFF";
   ctx.font = "bold 48px sans-serif";
   ctx.textAlign = "left";
   ctx.fillText("HH GOA 2026", 60, 110);
-
-  // Draw HACKER Badge
-  ctx.fillStyle = "rgba(183, 255, 0, 0.1)";
-  ctx.beginPath();
-  roundRect(ctx, 770, 70, 170, 48, 6);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(183, 255, 0, 0.25)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.fillStyle = "#B7FF00";
-  ctx.font = "bold 20px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("HACKER", 855, 101);
 
   // Divider Line
   const grad = ctx.createLinearGradient(60, 0, 940, 0);
@@ -215,16 +189,16 @@ export async function renderBuilderCard(
   ctx.lineTo(940, 145);
   ctx.stroke();
 
-  // 5. Draw User Photo inside High-Tech Frame
-  const photoW = 340;
-  const photoH = 340;
+  // 5. Draw User Photo inside High-Tech Frame (w-45 h-45 -> ~428px wide/high)
+  const photoW = 428;
+  const photoH = 428;
   const photoX = (CARD_WIDTH - photoW) / 2;
   const photoY = 240;
 
   // Background for frame
   ctx.fillStyle = "#12161b";
   ctx.beginPath();
-  roundRect(ctx, photoX - 10, photoY - 10, photoW + 20, photoH + 20, 12);
+  roundRect(ctx, photoX - 10, photoY - 10, photoW + 20, photoH + 20, 14);
   ctx.fill();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
@@ -245,7 +219,7 @@ export async function renderBuilderCard(
   // Crop / Paint image bounds
   ctx.save();
   ctx.beginPath();
-  roundRect(ctx, photoX, photoY, photoW, photoH, 8);
+  roundRect(ctx, photoX, photoY, photoW, photoH, 10);
   ctx.clip();
   ctx.fillStyle = "#1c222a";
   ctx.fill();
@@ -290,7 +264,7 @@ export async function renderBuilderCard(
   ctx.fillStyle = "#FFFFFF";
   ctx.font = `bold ${nameSize}px sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText(formattedName, CARD_WIDTH / 2, 700);
+  ctx.fillText(formattedName, CARD_WIDTH / 2, 720);
 
   // Small centered bar under name
   const nameBarWidth = 150;
@@ -299,13 +273,13 @@ export async function renderBuilderCard(
   nameBarGrad.addColorStop(0.5, "rgba(183, 255, 0, 0.4)");
   nameBarGrad.addColorStop(1, "rgba(183, 255, 0, 0)");
   ctx.fillStyle = nameBarGrad;
-  ctx.fillRect(CARD_WIDTH / 2 - nameBarWidth / 2, 725, nameBarWidth, 4);
+  ctx.fillRect(CARD_WIDTH / 2 - nameBarWidth / 2, 745, nameBarWidth, 4);
 
   // 7. Draw PARTICIPANT Label (Centered)
   ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
   ctx.font = "bold 24px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("PARTICIPANT", CARD_WIDTH / 2, 775);
+  ctx.fillText("PARTICIPANT", CARD_WIDTH / 2, 795);
 
   // 8. Draw Role
   const formattedRole = input.role.trim() ? input.role.toUpperCase() : "ROLE";
@@ -313,11 +287,11 @@ export async function renderBuilderCard(
   ctx.fillStyle = "#B7FF00";
   ctx.font = "bold 28px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(displayRole, CARD_WIDTH / 2, 825);
+  ctx.fillText(displayRole, CARD_WIDTH / 2, 845);
 
   // 9. Draw Holographic Team Tag Box
   const boxX = 60;
-  const boxY = 890;
+  const boxY = 910;
   const boxW = 880;
   const boxH = 110;
 
