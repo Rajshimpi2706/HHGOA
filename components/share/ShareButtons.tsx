@@ -13,8 +13,7 @@ interface ShareButtonsProps {
 type ShareState = "idle" | "rendering" | "success" | "error";
 
 function buildXCaption(name: string): string {
-  const displayName = name.trim() || "A builder";
-  return `${displayName} is ready for Hacker House Goa 2026! 🚀\n\n#FrameInGoa #HHGoa2026`;
+  return `🚀 Ready to build at HH Goa 2026.\n\nThis is my Builder Card. See you in Goa. 👀\n\n#FrameInGoa #HHGoa2026`;
 }
 
 // Helper: upload card blob anonymously to Imgur to get a shareable URL
