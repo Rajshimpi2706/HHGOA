@@ -13,7 +13,7 @@ interface ShareButtonsProps {
 type ShareState = "idle" | "rendering" | "success" | "error";
 
 function buildXCaption(name: string): string {
-  return `🚀 Ready to build at HH Goa 2026.\n\nThis is my Builder Card. See you in Goa. 👀\n\n#FrameInGoa #HHGoa2026`;
+  return `I’m in. ⚡\n\nBuilding, shipping, and breaking things at HH Goa 2026.\n\nSee you in Goa 👀`;
 }
 
 // Helper: upload card blob anonymously to Imgur to get a shareable URL
@@ -32,6 +32,7 @@ async function uploadToImgur(blob: Blob): Promise<string | null> {
     });
     if (!response.ok) throw new Error("Imgur upload failed");
     const json = await response.json();
+    // Return the imgur link (or json.data.link / json.data.id)
     return json.data.link;
   } catch (err) {
     console.error("Imgur upload error:", err);
@@ -86,32 +87,8 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
     if (!blob) return;
 
     const caption = buildXCaption(name);
-    const file = new File([blob], "hhg-builder-signal.png", {
-      type: "image/png",
-    });
 
-    // Level 1: Native Web Share (mobile)
-    if (
-      typeof navigator !== "undefined" &&
-      navigator.canShare &&
-      navigator.canShare({ files: [file] })
-    ) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: "HH Goa Builder Card",
-          text: caption,
-        });
-        setShareState("success");
-        setStatusMsg("Shared!");
-        setTimeout(() => { setShareState("idle"); setStatusMsg(""); }, 3000);
-        return;
-      } catch {
-        // User cancelled or share failed — fall through to desktop fallback
-      }
-    }
-
-    // Level 2: Desktop fallback — upload image to Imgur to enable image preview on X
+    // Desktop & Mobile - Direct Web Intent (no navigator.share dialog)
     setStatusMsg("Uploading card preview link...");
     const imgurUrl = await uploadToImgur(blob);
 
@@ -120,7 +97,8 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
         "https://twitter.com/intent/tweet?text=" +
         encodeURIComponent(caption) +
         "&url=" +
-        encodeURIComponent(imgurUrl);
+        encodeURIComponent(imgurUrl) +
+        "&hashtags=FrameInGoa,HHGoa2026";
       window.open(xUrl, "_blank", "noopener,noreferrer");
       setShareState("success");
       setStatusMsg("X share window opened!");
@@ -129,7 +107,8 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
       triggerDownload(blob);
       const xUrl =
         "https://twitter.com/intent/tweet?text=" +
-        encodeURIComponent(caption);
+        encodeURIComponent(caption) +
+        "&hashtags=FrameInGoa,HHGoa2026";
       window.open(xUrl, "_blank", "noopener,noreferrer");
       setShareState("success");
       setStatusMsg("Card downloaded — attach it in the X window that opened.");
