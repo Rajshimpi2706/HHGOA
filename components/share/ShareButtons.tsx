@@ -32,8 +32,10 @@ async function uploadToImgur(blob: Blob): Promise<string | null> {
     });
     if (!response.ok) throw new Error("Imgur upload failed");
     const json = await response.json();
-    // Return the imgur link (or json.data.link / json.data.id)
-    return json.data.link;
+    if (json.data && json.data.id) {
+      return `https://imgur.com/${json.data.id}`;
+    }
+    return json.data.link || null;
   } catch (err) {
     console.error("Imgur upload error:", err);
     return null;
