@@ -92,7 +92,7 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
     if (uploadResult) {
       // Construct stateless server-rendered share link pointing to our Next.js app
       // We pass the raw image URL returned by Imgur (which serves it with image/png content-type)
-      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(uploadResult.imageUrl) + "&name=" + encodeURIComponent(name);
+      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(uploadResult.imageUrl) + "&name=" + encodeURIComponent(name) + "&t=" + Date.now();
       
       const xUrl =
         "https://twitter.com/intent/tweet?text=" +
