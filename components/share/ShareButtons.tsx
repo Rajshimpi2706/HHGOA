@@ -83,42 +83,52 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
     const blob = await getBlob();
     if (!blob) return;
 
-    const caption = buildXCaption(name);
+    const safeName = name.trim().toLowerCase().replace(/\s+/g, "-");
+    const fileName = safeName ? `HHG-${safeName}.png` : "HHG-Builder-Card.png";
+    const file = new File([blob], fileName, { type: "image/png" });
 
-    // Desktop & Mobile - Direct Web Intent (no navigator.share dialog)
-    setStatusMsg("Uploading card preview link...");
-    const uploadResult = await uploadToProxy(blob);
+    const caption = `${buildXCaption(name)}\n\n#FrameInGoa #HHGoa2026`;
 
-    if (uploadResult) {
-      // Construct stateless server-rendered share link pointing to our Next.js app
-      // We pass the raw image URL returned by Imgur (which serves it with image/png content-type)
-      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(uploadResult.imageUrl) + "&name=" + encodeURIComponent(name) + "&t=" + Date.now();
-      
-      const xUrl =
-        "https://twitter.com/intent/tweet?text=" +
-        encodeURIComponent(caption) +
-        "&url=" +
-        encodeURIComponent(shareUrl) +
-        "&hashtags=FrameInGoa,HHGoa2026";
-      window.open(xUrl, "_blank", "noopener,noreferrer");
-      setShareState("success");
-      setStatusMsg("X share window opened!");
-    } else {
-      // Fallback if upload fails — download file and open normal tweet window
-      triggerDownload(blob);
-      const xUrl =
-        "https://twitter.com/intent/tweet?text=" +
-        encodeURIComponent(caption) +
-        "&hashtags=FrameInGoa,HHGoa2026";
-      window.open(xUrl, "_blank", "noopener,noreferrer");
-      setShareState("success");
-      setStatusMsg("Card downloaded — attach it in the X window that opened.");
+    // Level 1: Mobile Native Web Share with attached PNG file
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.canShare &&
+      navigator.canShare({ files: [file] })
+    ) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "HH Goa 2026 Builder Card",
+          text: caption,
+        });
+        setShareState("success");
+        setStatusMsg("Card image shared!");
+        setTimeout(() => {
+          setShareState("idle");
+          setStatusMsg("");
+        }, 3000);
+        return;
+      } catch {
+        // User cancelled share or fell back — continue to desktop flow
+      }
     }
-    
+
+    // Level 2: Desktop Flow — Automatically download PNG + open clean X tweet box (no long URL clutter!)
+    triggerDownload(blob);
+
+    const xUrl =
+      "https://twitter.com/intent/tweet?text=" +
+      encodeURIComponent(caption);
+
+    window.open(xUrl, "_blank", "noopener,noreferrer");
+
+    setShareState("success");
+    setStatusMsg("Card downloaded! Click the picture icon on X to attach your card.");
+
     setTimeout(() => {
       setShareState("idle");
       setStatusMsg("");
-    }, 5000);
+    }, 6000);
   }
 
   const isRendering = shareState === "rendering";
