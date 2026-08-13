@@ -16,28 +16,26 @@ function buildXCaption(name: string): string {
   return `I’m in. ⚡\n\nBuilding, shipping, and breaking things at HH Goa 2026.\n\nSee you in Goa 👀`;
 }
 
-// Helper: upload card blob anonymously to Imgur to get a shareable URL
-async function uploadToImgur(blob: Blob): Promise<string | null> {
+// Helper: upload card blob anonymously to tmpfiles.org to get a temporary direct URL
+async function uploadToTmpfiles(blob: Blob): Promise<string | null> {
   const formData = new FormData();
-  formData.append("image", blob);
+  formData.append("file", blob, "card.png");
   try {
-    // Public anonymous client ID for card sharing
-    const clientID = "546c25a59c58ad7"; 
-    const response = await fetch("https://api.imgur.com/3/image", {
+    const response = await fetch("https://tmpfiles.org/api/v1/upload", {
       method: "POST",
-      headers: {
-        Authorization: `Client-ID ${clientID}`,
-      },
       body: formData,
     });
-    if (!response.ok) throw new Error("Imgur upload failed");
+    if (!response.ok) throw new Error("Tmpfiles upload failed");
     const json = await response.json();
-    if (json.data && json.data.id) {
-      return `https://imgur.com/${json.data.id}`;
+    if (json.status === "success" && json.data && json.data.url) {
+      const rawUrl = json.data.url;
+      // Convert standard viewer link to direct download link (insert /dl/ after domain name)
+      const directUrl = rawUrl.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+      return directUrl;
     }
-    return json.data.link || null;
+    return null;
   } catch (err) {
-    console.error("Imgur upload error:", err);
+    console.error("Tmpfiles upload error:", err);
     return null;
   }
 }
@@ -92,20 +90,23 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
 
     // Desktop & Mobile - Direct Web Intent (no navigator.share dialog)
     setStatusMsg("Uploading card preview link...");
-    const imgurUrl = await uploadToImgur(blob);
+    const imgUrl = await uploadToTmpfiles(blob);
 
-    if (imgurUrl) {
+    if (imgUrl) {
+      // Construct stateless server-rendered share link pointing to our Next.js app
+      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(imgUrl) + "&name=" + encodeURIComponent(name);
+      
       const xUrl =
         "https://twitter.com/intent/tweet?text=" +
         encodeURIComponent(caption) +
         "&url=" +
-        encodeURIComponent(imgurUrl) +
+        encodeURIComponent(shareUrl) +
         "&hashtags=FrameInGoa,HHGoa2026";
       window.open(xUrl, "_blank", "noopener,noreferrer");
       setShareState("success");
       setStatusMsg("X share window opened!");
     } else {
-      // Fallback if Imgur fails — download file and open normal tweet window
+      // Fallback if upload fails — download file and open normal tweet window
       triggerDownload(blob);
       const xUrl =
         "https://twitter.com/intent/tweet?text=" +
