@@ -16,23 +16,26 @@ function buildXCaption(name: string): string {
   return `I’m in. ⚡\n\nBuilding, shipping, and breaking things at HH Goa 2026.\n\nSee you in Goa 👀`;
 }
 
-// Helper: upload card blob to our Next.js API upload proxy
-async function uploadToProxy(blob: Blob): Promise<{ url: string; imageUrl: string } | null> {
+// Helper: upload card blob anonymously to Imgur to get a shareable URL
+async function uploadToImgur(blob: Blob): Promise<string | null> {
   const formData = new FormData();
-  formData.append("file", blob, "card.png");
+  formData.append("image", blob);
   try {
-    const response = await fetch("/api/upload", {
+    // Public anonymous client ID for card sharing
+    const clientID = "546c25a59c58ad7";
+    const response = await fetch("https://api.imgur.com/3/image", {
       method: "POST",
+      headers: {
+        Authorization: `Client-ID ${clientID}`,
+      },
       body: formData,
     });
-    if (!response.ok) throw new Error("Proxy upload failed");
+    if (!response.ok) throw new Error("Imgur upload failed");
     const json = await response.json();
-    if (json.url && json.imageUrl) {
-      return { url: json.url, imageUrl: json.imageUrl };
-    }
-    return null;
+    // Return the imgur link (or json.data.link / json.data.id)
+    return json.data.link;
   } catch (err) {
-    console.error("Proxy upload error:", err);
+    console.error("Imgur upload error:", err);
     return null;
   }
 }
@@ -50,7 +53,7 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
     } catch (err) {
       console.error("Render error:", err);
       setShareState("error");
-      setStatusMsg("Failed to generate card. Please try again.");
+      setStatusMsg("Failed to generate card. Please try again later!!.");
       return null;
     }
   }
@@ -83,52 +86,38 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
     const blob = await getBlob();
     if (!blob) return;
 
-    const safeName = name.trim().toLowerCase().replace(/\s+/g, "-");
-    const fileName = safeName ? `HHG-${safeName}.png` : "HHG-Builder-Card.png";
-    const file = new File([blob], fileName, { type: "image/png" });
+    const caption = buildXCaption(name);
 
-    const caption = `${buildXCaption(name)}\n\n#FrameInGoa #HHGoa2026`;
+    // Desktop & Mobile - Direct Web Intent (no navigator.share dialog)
+    setStatusMsg("Uploading card preview link...");
+    const imgurUrl = await uploadToImgur(blob);
 
-    // Level 1: Mobile Native Web Share with attached PNG file
-    if (
-      typeof navigator !== "undefined" &&
-      navigator.canShare &&
-      navigator.canShare({ files: [file] })
-    ) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: "HH Goa 2026 Builder Card",
-          text: caption,
-        });
-        setShareState("success");
-        setStatusMsg("Card image shared!");
-        setTimeout(() => {
-          setShareState("idle");
-          setStatusMsg("");
-        }, 3000);
-        return;
-      } catch {
-        // User cancelled share or fell back — continue to desktop flow
-      }
+    if (imgurUrl) {
+      const xUrl =
+        "https://twitter.com/intent/tweet?text=" +
+        encodeURIComponent(caption) +
+        "&url=" +
+        encodeURIComponent(imgurUrl) +
+        "&hashtags=FrameInGoa,HHGoa2026";
+      window.open(xUrl, "_blank", "noopener,noreferrer");
+      setShareState("success");
+      setStatusMsg("X share window opened!");
+    } else {
+      // Fallback if Imgur fails — download file and open normal tweet window
+      triggerDownload(blob);
+      const xUrl =
+        "https://twitter.com/intent/tweet?text=" +
+        encodeURIComponent(caption) +
+        "&hashtags=FrameInGoa,HHGoa2026";
+      window.open(xUrl, "_blank", "noopener,noreferrer");
+      setShareState("success");
+      setStatusMsg("Card downloaded — attach it in the X window that opened.");
     }
-
-    // Level 2: Desktop Flow — Automatically download PNG + open clean X tweet box (no long URL clutter!)
-    triggerDownload(blob);
-
-    const xUrl =
-      "https://twitter.com/intent/tweet?text=" +
-      encodeURIComponent(caption);
-
-    window.open(xUrl, "_blank", "noopener,noreferrer");
-
-    setShareState("success");
-    setStatusMsg("Card downloaded! Click the picture icon on X to attach your card.");
 
     setTimeout(() => {
       setShareState("idle");
       setStatusMsg("");
-    }, 6000);
+    }, 5000);
   }
 
   const isRendering = shareState === "rendering";
