@@ -16,26 +16,23 @@ function buildXCaption(name: string): string {
   return `I’m in. ⚡\n\nBuilding, shipping, and breaking things at HH Goa 2026.\n\nSee you in Goa 👀`;
 }
 
-// Helper: upload card blob anonymously to tmpfiles.org to get a temporary direct URL
-async function uploadToTmpfiles(blob: Blob): Promise<string | null> {
+// Helper: upload card blob to our Next.js API upload proxy
+async function uploadToProxy(blob: Blob): Promise<{ url: string; imageUrl: string } | null> {
   const formData = new FormData();
   formData.append("file", blob, "card.png");
   try {
-    const response = await fetch("https://tmpfiles.org/api/v1/upload", {
+    const response = await fetch("/api/upload", {
       method: "POST",
       body: formData,
     });
-    if (!response.ok) throw new Error("Tmpfiles upload failed");
+    if (!response.ok) throw new Error("Proxy upload failed");
     const json = await response.json();
-    if (json.status === "success" && json.data && json.data.url) {
-      const rawUrl = json.data.url;
-      // Convert standard viewer link to direct download link (insert /dl/ after domain name)
-      const directUrl = rawUrl.replace("tmpfiles.org/", "tmpfiles.org/dl/");
-      return directUrl;
+    if (json.url && json.imageUrl) {
+      return { url: json.url, imageUrl: json.imageUrl };
     }
     return null;
   } catch (err) {
-    console.error("Tmpfiles upload error:", err);
+    console.error("Proxy upload error:", err);
     return null;
   }
 }
@@ -90,11 +87,12 @@ export function ShareButtons({ renderInput, name }: ShareButtonsProps) {
 
     // Desktop & Mobile - Direct Web Intent (no navigator.share dialog)
     setStatusMsg("Uploading card preview link...");
-    const imgUrl = await uploadToTmpfiles(blob);
+    const uploadResult = await uploadToProxy(blob);
 
-    if (imgUrl) {
+    if (uploadResult) {
       // Construct stateless server-rendered share link pointing to our Next.js app
-      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(imgUrl) + "&name=" + encodeURIComponent(name);
+      // We pass the raw image URL returned by Imgur (which serves it with image/png content-type)
+      const shareUrl = window.location.origin + "/share?img=" + encodeURIComponent(uploadResult.imageUrl) + "&name=" + encodeURIComponent(name);
       
       const xUrl =
         "https://twitter.com/intent/tweet?text=" +
